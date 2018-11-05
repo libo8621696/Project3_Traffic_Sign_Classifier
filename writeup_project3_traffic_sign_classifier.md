@@ -186,11 +186,17 @@ To train the model, I used 70 epochs and 128 samples for each batch, the learnin
 
 My final model results were:
 * training set accuracy of 100%
-* validation set accuracy of 98.8%
-* test set accuracy of 93.0%
+* validation set accuracy of 98.7%
+* test set accuracy of 92.8%
+
+The well known LeNet architecture is chosen for this project, only a slight modification of the output. 
+
+The LeNet arichitecture is originally designed for classfiying the digits of the class from 1 to 10. LeNet is a type of CNN network useful not only for classifying the 10 digits in MNIST dataset. Our project `Traffic Sign Classifier Project` is also a classification project on classifying 43 different traffic signs which is quite similar to what LeNet does.
+
+The final model's accuracy on training is 100%, but this result is not so important as the validation accuracy 98.7%,since the validation data is thrown in the CNN framwork to test the state-of-the-art accuracy
+after updating the weights at each epoch. But the most import index for the final model's accuracy might be due to the test accuracy. The test dataset never participate in the training process, and keep independent from the training set and the validation set. So the test accuracy evaluated on the stand-alone test set might be more convincing to the customers to judge the effectiveness of the LeNet framework.
 
 
- 
 
 ### Test a Model on New Images
 
