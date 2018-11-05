@@ -38,7 +38,7 @@ The goals / steps of this project are the following:
 
 #### 1. Submission Format.
 
-This is the writeup report of the project completion, along with the other submission files as ipython notebook `Traffic_Sign_Classifier.ipynb`  for the source code and the HTML version `Traffic_Sign_Classifier.html` for the output of the source code. Here is a link to my [project code](https://github.com/libo8621696/Traffic_Sign_Classifier/blob/master/Traffic_Sign_Classifier.ipynb).
+This is the writeup report of the project completion, along with the other submission files as ipython notebook `Traffic_Sign_Classifier.ipynb`  for the source code and the HTML version `Traffic_Sign_Classifier.html` for the output of the source code. Here is a link to my [project code](https://github.com/libo8621696/Project3_Traffic_Sign_Classifier/blob/master/Traffic_Sign_Classifier.ipynb).
 
 ### Data Set Summary & Exploration
 
