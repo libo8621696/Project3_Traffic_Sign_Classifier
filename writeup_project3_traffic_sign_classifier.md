@@ -155,7 +155,7 @@ Here is an example of comparison of traffic sign image before and after grayscal
 
 ![alt text][image2]
 
-As a last step, I normalized the image data because the ranges of our distribution of feature values would be not so different and thus the learning rate would cause corrections in each directions evenly. Otherwise, we might over compensating a correction in one weight dimension while undercompensating another.
+As a last step, I normalized the image data so that they are of approximately the same scale, so that the learning rate would cause corrections in each directions evenly. Otherwise, we might over compensating a correction in one weight dimension while undercompensating another.
 
 #### 2. Describe what your final model architecture looks like including model type, layers, layer sizes, connectivity, etc.) Consider including a diagram and/or table describing the final model.
 
@@ -166,9 +166,11 @@ My final model is a modified LeNet framework, which consisted of the following l
 | Input         		| 32x32x1 gray_scaled image   					| 
 | Convolution 5x5     	| 1x1 stride, valid padding, outputs 28x28x6 	|
 | RELU					| Activation function   					    |
+| Dropout					| drop out 40% nodes   					    |
 | Max pooling	      	| 2x2 stride,  outputs 14x14x6 				    |
 | Convolution 5x5	    | 1x1 stride, valid padding, outputs 10x10x16   |
 | RELU		            | Activation function        					|
+| Dropout					| drop out 30% nodes   					    |
 | Max pooling			|  2x2 stride,  outputs 5x5x6		 			|
 | Flatten				|  outputs 400			            			|
 | Fully connected		|  outputs 120									|
@@ -176,6 +178,78 @@ My final model is a modified LeNet framework, which consisted of the following l
 | Fully connected		|  outputs 84									|
 | RELU      			|  Activation function							|
 | Fully connected		|  outputs 43									|
+
+The code for the  modified LeNet framework is following:
+
+```python
+def LeNet(x):    
+    # Arguments used for tf.truncated_normal, randomly defines variables for the weights and biases for each layer
+    mu = 0
+    sigma = 0.1
+    
+    # SOLUTION: Layer 1: Convolutional. Input = 32x32x1. Output = 28x28x6.
+    conv1_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 1, 6), mean = mu, stddev = sigma))
+    conv1_b = tf.Variable(tf.zeros(6))
+    conv1   = tf.nn.conv2d(x, conv1_W, strides=[1, 1, 1, 1], padding='VALID') + conv1_b
+
+    # SOLUTION: Activation.
+    conv1 = tf.nn.relu(conv1, name = 'convolution0')
+    
+    # SOLUTION: Dropout
+    conv1 = tf.nn.dropout(conv1, keep_prob)
+
+    # SOLUTION: Pooling. Input = 28x28x6. Output = 14x14x6.
+    conv1 = tf.nn.max_pool(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID', name='convolution1')
+
+    # SOLUTION: Layer 2: Convolutional. Output = 10x10x16.
+    conv2_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 6, 16), mean = mu, stddev = sigma))
+    conv2_b = tf.Variable(tf.zeros(16))
+    conv2   = tf.nn.conv2d(conv1, conv2_W, strides=[1, 1, 1, 1], padding='VALID') + conv2_b
+    
+    # SOLUTION: Activation.
+    conv2 = tf.nn.relu(conv2,name='convolution2')
+    
+    # SOLUTION: Dropout
+    conv2 = tf.nn.dropout(conv2, keep_prob2)
+
+    # SOLUTION: Pooling. Input = 10x10x16. Output = 5x5x16.
+    conv2 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID',name='convolution3')
+
+    # SOLUTION: Flatten. Input = 5x5x16. Output = 400.
+    fc0   = flatten(conv2)
+    
+    # SOLUTION: Layer 3: Fully Connected. Input = 400. Output = 120.
+    fc1_W = tf.Variable(tf.truncated_normal(shape=(400, 120), mean = mu, stddev = sigma))
+    fc1_b = tf.Variable(tf.zeros(120))
+    fc1   = tf.matmul(fc0, fc1_W) + fc1_b
+    
+    # SOLUTION: Activation.
+    fc1    = tf.nn.relu(fc1)
+
+    # SOLUTION: Layer 4: Fully Connected. Input = 120. Output = 84.
+    fc2_W  = tf.Variable(tf.truncated_normal(shape=(120, 84), mean = mu, stddev = sigma))
+    fc2_b  = tf.Variable(tf.zeros(84))
+    fc2    = tf.matmul(fc1, fc2_W) + fc2_b
+    
+    # SOLUTION: Activation.
+    fc2    = tf.nn.relu(fc2)
+
+    # SOLUTION: Layer 5: Fully Connected. Input = 84. Output = 43.
+    fc3_W  = tf.Variable(tf.truncated_normal(shape=(84, 43), mean = mu, stddev = sigma))
+    fc3_b  = tf.Variable(tf.zeros(43))
+    logits = tf.matmul(fc2, fc3_W) + fc3_b
+    
+    return logits
+
+
+x = tf.placeholder(tf.float32, (None, 32, 32, 1))
+y = tf.placeholder(tf.int32, (None))
+one_hot_y = tf.one_hot(y, 43)
+keep_prob = tf.placeholder(tf.float32) # probability to keep units
+keep_prob2 = tf.placeholder(tf.float32)
+
+
+```
 
 
 #### 3. Describe how you trained your model. The discussion can include the type of optimizer, the batch size, number of epochs and any hyperparameters such as learning rate.
@@ -185,15 +259,15 @@ To train the model, I used 70 epochs and 128 samples for each batch, the learnin
 #### 4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
 
 My final model results were:
-* training set accuracy of 100%
-* validation set accuracy of 98.7%
-* test set accuracy of 92.8%
+* training set accuracy of 99.9%
+* validation set accuracy of 99.0%
+* test set accuracy of 93.2%
 
 The well known LeNet architecture is chosen for this project, only a slight modification of the output. 
 
 The LeNet arichitecture is originally designed for classfiying the digits of the class from 1 to 10. LeNet is a type of CNN network useful not only for classifying the 10 digits in MNIST dataset. Our project `Traffic Sign Classifier Project` is also a classification project on classifying 43 different traffic signs which is quite similar to what LeNet does.
 
-The final model's accuracy on training is 100%, but this result is not so important as the validation accuracy 98.7%,since the validation data is thrown in the CNN framwork to test the state-of-the-art accuracy
+The final model's accuracy on training is 99.9%, but this result is not so important as the validation accuracy 99.0%,since the validation data is thrown in the CNN framwork to test the state-of-the-art accuracy
 after updating the weights at each epoch. But the most import index for the final model's accuracy might be due to the test accuracy. The test dataset never participate in the training process, and keep independent from the training set and the validation set. So the test accuracy evaluated on the stand-alone test set might be more convincing to the customers to judge the effectiveness of the LeNet framework.
 
 
@@ -232,17 +306,17 @@ The code for making predictions on my final model is located in the 41st and 42n
 
 
 
-For all the 5 images, the model is very confident at their top guess, however, the top guess is not always correct.
+For all the 5 images, the model is correct at their top guess, however, however the  guess is not always so confident.
 
 For the first image,  which  shows  Speed limit (100km/h), the top five soft max probabilities  of this image are presented as 
 
 | Probability         	|     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | 1.00         			| Speed limit (100km/h)   									| 
-| .00     				| Speed limit (120km/h) 										|
-| .00					| Roundabout mandatory											|
-| .00	      			| Speed limit (80km/h)					 				|
-| .00				    | Vehicles over 3.5 metric tons prohibited  						|
+| .00     				| Speed limit (80km/h)										|
+| .00					| Speed limit (120km/h)											|
+| .00	      			| Speed limit (70km/h)					 				|
+| .00				    | Speed limit (20km/h)  						|
 
 Since the top 1 prediction is the same as the actual traffic sign Class Id, the first prediction is correct.
 
@@ -252,9 +326,9 @@ For the second image which  shows  No passing, the top five soft max probabiliti
 |:---------------------:|:---------------------------------------------:| 
 | 1.00         			| No passing   									| 
 | .00     				| No passing for vehicles over 3.5 metric tons 										|
-| .00					| Dangerous curve to the right											|
-| .00	      			| Beware of ice/snow					 				|
-| .00				    | Ahead only  			|
+| .00					| Yield											|
+| .00	      			| Slippery road		 				|
+| .00				    | Vehicles over 3.5 metric tons prohibited  			|
 
 Since the top 1 prediction is the same as the actual traffic sign Class Id, the prediction of the second image is correct.
 
@@ -267,8 +341,8 @@ For the third image which  shows  Speed limit (60km/h), the top five soft max pr
 | 1.00         			| Speed limit (60km/h)   									| 
 | .00     				| Speed limit (80km/h)										|
 | .00					| Speed limit (50km/h)											|
-| .00	      			| Keep right				 				|
-| .00				    |End of speed limit (80km/h) 			|
+| .00	      			| Speed limit (20km/h)				 				|
+| .00				    |End of no passing by vehicles over 3.5 metric tons 			|
 
 Since the top 1 prediction is the same as the actual traffic sign Class Id, the prediction of the third image is correct.
 
@@ -277,10 +351,10 @@ For the fourth image which  shows  Priority road, the top five soft max probabil
 | Probability         	|     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | 1.00         			| Priority road   									| 
-| .00     				| No passing										|
-| .00					| Ahead only											|
-| .00	      			| Turn right ahead				 				|
-| .00				    |End of no passing 			|
+| .00     				| End of all speed and passing limits										|
+| .00					| Keep right											|
+| .00	      			| Speed limit (100km/h)				 				|
+| .00				    |End of no passing by vehicles over 3.5 metric tons 			|
 
 Since the top 1 prediction is the same as the actual traffic sign Class Id, the prediction of the fourth image is correct.
 
@@ -288,13 +362,13 @@ For the last image which  shows  Speed limit (60km/h), the top five soft max pro
 
 | Probability         	|     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
-| 1.00         			| Right-of-way at the next intersection   									| 
-| .00     				| Speed limit (60km/h)										|
-| .00					| Priority road											|
-| .00	      			| End of speed limit (80km/h)				 				|
-| .00				    |Speed limit (80km/h)			|
+| 0.57         			| Speed limit (60km/h)   									| 
+| .38     				| Road work										|
+| .05					| Speed limit (80km/h)							|
+| .00	      			| Speed limit (50km/h)				 				|
+| .00				    |Beware of ice/snow			|
 
-Since the top 1 prediction is  not the same as the actual traffic sign Class Id, the prediction of the last image is  not correct. The extremely dark background of the 60km/h speed limit sign might be difficult for the Lenet training framwork.
+Since the top 1 prediction is  the same as the actual traffic sign Class Id, the prediction of the last image is  correct. The extremely dark background of the 60km/h speed limit sign might be difficult for the Lenet training framwork, so the top 1 guess is not 100%, only 57% sure of the right answer.
 
 ### (Optional) Visualizing the Neural Network (See Step 4 of the Ipython notebook for more details)
 #### 1. Discuss the visual output of your trained network's feature maps. What characteristics did the neural network use to make classifications?
