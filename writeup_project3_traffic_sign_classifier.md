@@ -30,6 +30,7 @@ The goals / steps of this project are the following:
 [image9]: ./feature_map4.png "second_maxpooling"
 [image10]: ./bar_chart2.png "second_maxpooling"
 
+
 ## Rubric Points
 ### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/481/view) individually and describe how I addressed each point in my implementation.  
 
@@ -165,18 +166,18 @@ My final model is a modified LeNet framework, which consisted of the following l
 |:---------------------:|:---------------------------------------------:| 
 | Input         		| 32x32x1 gray_scaled image   					| 
 | Convolution 5x5     	| 1x1 stride, valid padding, outputs 28x28x6 	|
-| RELU					| Activation function   					    |
+| ELU					| Activation function   					    |
 | Dropout					| drop out 40% nodes   					    |
 | Max pooling	      	| 2x2 stride,  outputs 14x14x6 				    |
 | Convolution 5x5	    | 1x1 stride, valid padding, outputs 10x10x16   |
-| RELU		            | Activation function        					|
+| ELU		            | Activation function        					|
 | Dropout					| drop out 30% nodes   					    |
 | Max pooling			|  2x2 stride,  outputs 5x5x6		 			|
 | Flatten				|  outputs 400			            			|
 | Fully connected		|  outputs 120									|
-| RELU      			|  Activation function							|
+| ELU      			|  Activation function							|
 | Fully connected		|  outputs 84									|
-| RELU      			|  Activation function							|
+| ELU      			|  Activation function							|
 | Fully connected		|  outputs 43									|
 
 The code for the  modified LeNet framework is following:
@@ -193,7 +194,7 @@ def LeNet(x):
     conv1   = tf.nn.conv2d(x, conv1_W, strides=[1, 1, 1, 1], padding='VALID') + conv1_b
 
     # SOLUTION: Activation.
-    conv1 = tf.nn.relu(conv1, name = 'convolution0')
+    conv1 = tf.nn.elu(conv1, name = 'convolution0')
     
     # SOLUTION: Dropout
     conv1 = tf.nn.dropout(conv1, keep_prob)
@@ -207,7 +208,7 @@ def LeNet(x):
     conv2   = tf.nn.conv2d(conv1, conv2_W, strides=[1, 1, 1, 1], padding='VALID') + conv2_b
     
     # SOLUTION: Activation.
-    conv2 = tf.nn.relu(conv2,name='convolution2')
+    conv2 = tf.nn.elu(conv2,name='convolution2')
     
     # SOLUTION: Dropout
     conv2 = tf.nn.dropout(conv2, keep_prob2)
@@ -224,7 +225,7 @@ def LeNet(x):
     fc1   = tf.matmul(fc0, fc1_W) + fc1_b
     
     # SOLUTION: Activation.
-    fc1    = tf.nn.relu(fc1)
+    fc1    = tf.nn.elu(fc1)
 
     # SOLUTION: Layer 4: Fully Connected. Input = 120. Output = 84.
     fc2_W  = tf.Variable(tf.truncated_normal(shape=(120, 84), mean = mu, stddev = sigma))
@@ -232,7 +233,7 @@ def LeNet(x):
     fc2    = tf.matmul(fc1, fc2_W) + fc2_b
     
     # SOLUTION: Activation.
-    fc2    = tf.nn.relu(fc2)
+    fc2    = tf.nn.elu(fc2)
 
     # SOLUTION: Layer 5: Fully Connected. Input = 84. Output = 43.
     fc3_W  = tf.Variable(tf.truncated_normal(shape=(84, 43), mean = mu, stddev = sigma))
@@ -259,18 +260,23 @@ To train the model, I used 70 epochs and 128 samples for each batch, the learnin
 #### 4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
 
 My final model results were:
-* training set accuracy of 99.9%
-* validation set accuracy of 99.0%
-* test set accuracy of 93.2%
+* training set accuracy of 99.5%
+* validation set accuracy of 98.0%
+* test set accuracy of 91.2%
 
 The well known LeNet architecture is chosen for this project, only a slight modification of the output. 
 
 The LeNet arichitecture is originally designed for classfiying the digits of the class from 1 to 10. LeNet is a type of CNN network useful not only for classifying the 10 digits in MNIST dataset. Our project `Traffic Sign Classifier Project` is also a classification project on classifying 43 different traffic signs which is quite similar to what LeNet does.
 
-The final model's accuracy on training is 99.9%, but this result is not so important as the validation accuracy 99.0%,since the validation data is thrown in the CNN framwork to test the state-of-the-art accuracy
+The final model's accuracy on training is 99.5%, but this result is not so important as the validation accuracy 98.0%,since the validation data is thrown in the CNN framwork to test the state-of-the-art accuracy
 after updating the weights at each epoch. But the most import index for the final model's accuracy might be due to the test accuracy. The test dataset never participate in the training process, and keep independent from the training set and the validation set. So the test accuracy evaluated on the stand-alone test set might be more convincing to the customers to judge the effectiveness of the LeNet framework.
 
+It is worth noticing from the past experience that the problem of such Deep Neural Networks(DNN) is overfitting. The model learns to classify only the training examples instead of learning decision boundaries capable of classifying generic instances. The drop out seems to be very useful. Before the drop out applies, the modified LeNet mightbe overfitted respect to the training sets, but when the trained framework is tested  on some extreme cases not met in the training sets, the prediction might not be so robust. For example, the last picture under occluded or some complicated background cluttered behind, the prediction of the network without dropout might give a wrong answer. It is commonly accepted that the dropout could work well in practice because it prevents the co-adaption of neurons during the training phase.
 
+
+ With some proper drop out preventing the co-adaptations which might not generalized to unseen data, the dropped out neurons could be regarded as some kind of hidden units unreliable. Therefore, the hidden units cannot be relied on other specific units to correct its mistakes. 
+
+ The other modification of the LeNet framework is to replace the RELU with ELU(Exponential Linear Units) for the activation function. The original RELU might be always output the same value if some large negative bias term is met in some particular training process. Once the RELU is "dead", it is unlikely to recover, because the gradient at 0 is also 0. The ELU gives a solution on providing some small positive gradient for negative inputs in attempt to give a chance to recover. The switch from RELU to ELU brings about the lift of accuracy in predicting the last example picture from 57% to 97%.
 
 ### Test a Model on New Images
 
@@ -296,7 +302,7 @@ Here are the results of the prediction:
 | No passing for vehicles over 3.5 metric tons			| No passing for vehicles over 3.5 metric tons     							|
 
 
-The model was able to correctly guess 5 of the 5 traffic signs, which gives an accuracy of 100%. This compares favorably to the accuracy on the test set of 93%.
+The model was able to correctly guess 5 of the 5 traffic signs, which gives an accuracy of 100%. This compares favorably to the accuracy on the test set of 91.2%.
 
 #### 3. Describe how certain the model is when predicting on each of the five new images by looking at the softmax probabilities for each prediction. Provide the top 5 softmax probabilities for each image along with the sign type of each probability. (OPTIONAL: as described in the "Stand Out Suggestions" part of the rubric, visualizations can also be provided such as bar charts)
 
@@ -304,7 +310,7 @@ The code for making predictions on my final model is located in the 41st and 42n
 
 ![alt text][image4] 
 
-
+![alt text][image5] 
 
 For all the 5 images, the model is correct at their top guess, however, however the  guess is not always so confident.
 
@@ -313,10 +319,10 @@ For the first image,  which  shows  Speed limit (100km/h), the top five soft max
 | Probability         	|     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | 1.00         			| Speed limit (100km/h)   									| 
-| .00     				| Speed limit (80km/h)										|
-| .00					| Speed limit (120km/h)											|
-| .00	      			| Speed limit (70km/h)					 				|
-| .00				    | Speed limit (20km/h)  						|
+| .00     				| Speed limit (120km/h)										|
+| .00					| Roundabout mandatory											|
+| .00	      			| Speed limit (80km/h)					 				|
+| .00				    | Speed limit (70km/h) 						|
 
 Since the top 1 prediction is the same as the actual traffic sign Class Id, the first prediction is correct.
 
@@ -326,9 +332,9 @@ For the second image which  shows  No passing, the top five soft max probabiliti
 |:---------------------:|:---------------------------------------------:| 
 | 1.00         			| No passing   									| 
 | .00     				| No passing for vehicles over 3.5 metric tons 										|
-| .00					| Yield											|
-| .00	      			| Slippery road		 				|
-| .00				    | Vehicles over 3.5 metric tons prohibited  			|
+| .00					| Slippery road											|
+| .00	      			| Dangerous curve to the left		 				|
+| .00				    | Ahead only  			|
 
 Since the top 1 prediction is the same as the actual traffic sign Class Id, the prediction of the second image is correct.
 
@@ -340,9 +346,9 @@ For the third image which  shows  Speed limit (60km/h), the top five soft max pr
 |:---------------------:|:---------------------------------------------:| 
 | 1.00         			| Speed limit (60km/h)   									| 
 | .00     				| Speed limit (80km/h)										|
-| .00					| Speed limit (50km/h)											|
-| .00	      			| Speed limit (20km/h)				 				|
-| .00				    |End of no passing by vehicles over 3.5 metric tons 			|
+| .00					| Turn left ahead											|
+| .00	      			| Speed limit (50km/h)				 				|
+| .00				    |End of speed limit (80km/h) 			|
 
 Since the top 1 prediction is the same as the actual traffic sign Class Id, the prediction of the third image is correct.
 
@@ -351,10 +357,10 @@ For the fourth image which  shows  Priority road, the top five soft max probabil
 | Probability         	|     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | 1.00         			| Priority road   									| 
-| .00     				| End of all speed and passing limits										|
-| .00					| Keep right											|
-| .00	      			| Speed limit (100km/h)				 				|
-| .00				    |End of no passing by vehicles over 3.5 metric tons 			|
+| .00     				| Roundabout mandatory										|
+| .00					| End of no passing by vehicles over 3.5 metric tons											|
+| .00	      			| Stop				 				|
+| .00				    |Ahead only 			|
 
 Since the top 1 prediction is the same as the actual traffic sign Class Id, the prediction of the fourth image is correct.
 
@@ -362,13 +368,13 @@ For the last image which  shows  Speed limit (60km/h), the top five soft max pro
 
 | Probability         	|     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
-| 0.57         			| Speed limit (60km/h)   									| 
-| .38     				| Road work										|
-| .05					| Speed limit (80km/h)							|
-| .00	      			| Speed limit (50km/h)				 				|
-| .00				    |Beware of ice/snow			|
+| 0.97         			| Speed limit (60km/h)   									| 
+| .03     				| End of speed limit (80km/h)										|
+| .00					| Stop							|
+| .00	      			| Speed limit (80km/h)				 				|
+| .00				    |Speed limit (20km/h)			|
 
-Since the top 1 prediction is  the same as the actual traffic sign Class Id, the prediction of the last image is  correct. The extremely dark background of the 60km/h speed limit sign might be difficult for the Lenet training framwork, so the top 1 guess is not 100%, only 57% sure of the right answer.
+Since the top 1 prediction is  the same as the actual traffic sign Class Id, the prediction of the last image is  correct. The extremely dark background of the 60km/h speed limit sign might be a little difficult for the Lenet training framwork, so the top 1 guess is not 100%, only 97% sure of the right answer.
 
 ### (Optional) Visualizing the Neural Network (See Step 4 of the Ipython notebook for more details)
 #### 1. Discuss the visual output of your trained network's feature maps. What characteristics did the neural network use to make classifications?
